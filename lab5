@@ -1,0 +1,111 @@
+import sys
+import os
+
+# --- ЭТИ ТРИ СТРОЧКИ РЕШАЮТ ПРОБЛЕМУ! ---
+# Указываем PyQt5, где искать плагины прямо в папке с установленным пакетом
+qt_plugin_path = os.path.join(sys.prefix, 'Lib', 'site-packages', 'PyQt5', 'Qt5', 'plugins')
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = qt_plugin_path
+# ---------------------------------------
+
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout,
+    QLabel, QLineEdit, QPushButton, QComboBox, QMessageBox
+)
+from PyQt5.QtCore import Qt
+
+class PharmacyApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("АС Учёт движения лекарств в аптеке")
+        self.setFixedSize(400, 400)
+        
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        layout = QVBoxLayout()
+        central_widget.setLayout(layout)
+        
+        title = QLabel("Оформление продажи лекарств")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-size: 16pt; font-weight: bold; margin: 10px;")
+        layout.addWidget(title)
+        
+        layout.addWidget(QLabel("Лекарство:"))
+        self.med_combo = QComboBox()
+        self.med_combo.addItems(["Аспирин", "Но-шпа", "Цитрамон", "Амоксициллин", "Парацетамол", "Лоратадин"])
+        layout.addWidget(self.med_combo)
+        
+        layout.addWidget(QLabel("Цена (руб.):"))
+        self.price_input = QLineEdit()
+        self.price_input.setReadOnly(True)
+        layout.addWidget(self.price_input)
+        
+        layout.addWidget(QLabel("Количество:"))
+        self.quantity_input = QLineEdit()
+        layout.addWidget(self.quantity_input)
+        
+        layout.addWidget(QLabel("Стоимость (руб.):"))
+        self.total_input = QLineEdit()
+        self.total_input.setReadOnly(True)
+        layout.addWidget(self.total_input)
+        
+        self.calc_btn = QPushButton("Рассчитать стоимость")
+        self.calc_btn.clicked.connect(self.calculate_total)
+        layout.addWidget(self.calc_btn)
+        
+        self.sell_btn = QPushButton("Продать")
+        self.sell_btn.setStyleSheet("background-color: green; color: white; font-weight: bold;")
+        self.sell_btn.clicked.connect(self.sell_medicine)
+        layout.addWidget(self.sell_btn)
+        
+        self.med_combo.currentIndexChanged.connect(self.update_price)
+        self.update_price()
+    
+    def update_price(self):
+        prices = {
+            "Аспирин": 50,
+            "Но-шпа": 120,
+            "Цитрамон": 30,
+            "Амоксициллин": 250,
+            "Парацетамол": 40,
+            "Лоратадин": 80
+        }
+        med = self.med_combo.currentText()
+        self.price_input.setText(str(prices.get(med, 0)))
+        self.calculate_total()
+    
+    def calculate_total(self):
+        try:
+            price = float(self.price_input.text())
+            quantity = float(self.quantity_input.text()) if self.quantity_input.text() else 0
+            total = price * quantity
+            self.total_input.setText(str(total))
+        except ValueError:
+            self.total_input.setText("0")
+    
+    def sell_medicine(self):
+        med = self.med_combo.currentText()
+        quantity = self.quantity_input.text()
+        total = self.total_input.text()
+        
+        if not quantity or float(quantity) <= 0:
+            QMessageBox.warning(self, "Ошибка", "Введите количество!")
+            return
+        
+        QMessageBox.information(
+            self,
+            "Продажа оформлена",
+            f"Продано: {med}\nКоличество: {quantity}\nСумма: {total} руб.\n\nЧек выдан покупателю."
+        )
+        
+        self.quantity_input.clear()
+        self.total_input.clear()
+
+def main():
+    app = QApplication(sys.argv)
+    window = PharmacyApp()
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
