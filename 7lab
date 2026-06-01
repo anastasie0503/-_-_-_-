@@ -1,0 +1,290 @@
+#HTML
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аптека - Учёт лекарств</title>
+</head>
+<body>
+    <div class="container">
+        <h1>АС «Учёт движения лекарств в аптеке»</h1>
+        <h2>Оформление продажи</h2>
+        
+        <div class="form-group">
+            <label for="medicine">Выберите лекарство:</label>
+            <select id="medicine">
+                <option value="50">Аспирин - 50 руб.</option>
+                <option value="120">Но-шпа - 120 руб.</option>
+                <option value="30">Цитрамон - 30 руб.</option>
+                <option value="250">Амоксициллин - 250 руб.</option>
+                <option value="40">Парацетамол - 40 руб.</option>
+                <option value="80">Лоратадин - 80 руб.</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="quantity">Количество (упаковок):</label>
+            <input type="number" id="quantity" min="1" value="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="total">Стоимость (руб.):</label>
+            <input type="text" id="total" readonly>
+        </div>
+        
+        <button id="calcBtn">Рассчитать стоимость</button>
+        <button id="sellBtn">Продать</button>
+        
+        <div id="result"></div>
+        
+        <h3>Остатки лекарств на складе</h3>
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>Лекарство</th>
+                    <th>Цена (руб.)</th>
+                    <th>Остаток (упаковок)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Аспирин</td><td>50</td><td>884</td></tr>
+                <tr><td>Но-шпа</td><td>120</td><td>396</td></tr>
+                <tr><td>Цитрамон</td><td>30</td><td>1188</td></tr>
+                <tr><td>Амоксициллин</td><td>250</td><td>126</td></tr>
+                <tr><td>Парацетамол</td><td>40</td><td>745</td></tr>
+                <tr><td>Лоратадин</td><td>80</td><td>377</td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+
+#CSS
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f7f0;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #2c5e2c;
+    text-align: center;
+    border-bottom: 2px solid #2c5e2c;
+    padding-bottom: 10px;
+}
+
+h2 {
+    color: #3a7e3a;
+    margin-top: 20px;
+}
+
+h3 {
+    color: #3a7e3a;
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+select, input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input[readonly] {
+    background-color: #e8f0e8;
+}
+
+button {
+    background-color: #2c5e2c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #1e401e;
+}
+
+#sellBtn {
+    background-color: #d9534f;
+}
+
+#sellBtn:hover {
+    background-color: #c9302c;
+}
+
+#result {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #2c5e2c;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e8f0e8;
+}
+
+#JS
+// Цены и начальные остатки (из 4-й лабы)
+const medicines = {
+    "Аспирин - 50 руб.": { price: 50, stock: 884 },
+    "Но-шпа - 120 руб.": { price: 120, stock: 396 },
+    "Цитрамон - 30 руб.": { price: 30, stock: 1188 },
+    "Амоксициллин - 250 руб.": { price: 250, stock: 126 },
+    "Парацетамол - 40 руб.": { price: 40, stock: 745 },
+    "Лоратадин - 80 руб.": { price: 80, stock: 377 }
+};
+
+// Получаем элементы страницы
+const medicineSelect = document.getElementById('medicine');
+const quantityInput = document.getElementById('quantity');
+const totalInput = document.getElementById('total');
+const calcBtn = document.getElementById('calcBtn');
+const sellBtn = document.getElementById('sellBtn');
+const resultDiv = document.getElementById('result');
+
+// Функция обновления таблицы остатков
+function updateStockTable() {
+    const tableBody = document.querySelector('#stockTable tbody');
+    tableBody.innerHTML = '';
+    
+    for (const [name, data] of Object.entries(medicines)) {
+        const row = tableBody.insertRow();
+        const medName = name.split(' - ')[0];
+        row.insertCell(0).textContent = medName;
+        row.insertCell(1).textContent = data.price;
+        row.insertCell(2).textContent = data.stock;
+    }
+}
+
+// Функция расчёта стоимости
+function calculateTotal() {
+    const selectedMedicine = medicineSelect.value;
+    const quantity = parseInt(quantityInput.value);
+    
+    if (isNaN(quantity) || quantity <= 0) {
+        totalInput.value = '0';
+        return;
+    }
+    
+    const price = parseInt(selectedMedicine);
+    const total = price * quantity;
+    totalInput.value = total;
+}
+
+// Функция продажи
+function sellMedicine() {
+    const selectedText = medicineSelect.options[medicineSelect.selectedIndex].text;
+    const selectedMedicine = medicineSelect.value;
+    const quantity = parseInt(quantityInput.value);
+    const total = parseInt(totalInput.value);
+    
+    // Проверки
+    if (isNaN(quantity) || quantity <= 0) {
+        resultDiv.innerHTML = '<p style="color: red;">❌ Ошибка: введите количество!</p>';
+        resultDiv.style.backgroundColor = '#ffe8e8';
+        return;
+    }
+    
+    if (!medicines[selectedText]) {
+        resultDiv.innerHTML = '<p style="color: red;">❌ Ошибка: лекарство не найдено!</p>';
+        return;
+    }
+    
+    if (medicines[selectedText].stock < quantity) {
+        resultDiv.innerHTML = `<p style="color: red;">❌ Ошибка: недостаточно товара! Остаток: ${medicines[selectedText].stock} упаковок.</p>`;
+        resultDiv.style.backgroundColor = '#ffe8e8';
+        return;
+    }
+    
+    // Списание остатка
+    medicines[selectedText].stock -= quantity;
+    
+    // Обновление таблицы
+    updateStockTable();
+    
+    // Вывод чека
+    resultDiv.innerHTML = `
+        <h3>🧾 Чек</h3>
+        <p>Препарат: ${selectedText.split(' - ')[0]}</p>
+        <p>Количество: ${quantity} упаковок</p>
+        <p>Цена за упаковку: ${medicines[selectedText].price} руб.</p>
+        <p><strong>Итого: ${total} рублей</strong></p>
+        <p>✅ Продажа оформлена! Спасибо за покупку!</p>
+        <p>Остаток на складе: ${medicines[selectedText].stock} упаковок</p>
+    `;
+    resultDiv.style.backgroundColor = '#e8f0e8';
+    
+    // Очистка
+    quantityInput.value = '1';
+    calculateTotal();
+}
+
+// Привязываем события к кнопкам
+calcBtn.addEventListener('click', calculateTotal);
+sellBtn.addEventListener('click', sellMedicine);
+
+// Событие при изменении выбора лекарства
+medicineSelect.addEventListener('change', calculateTotal);
+
+// Событие при вводе количества
+quantityInput.addEventListener('input', calculateTotal);
+
+// Инициализация
+calculateTotal();
+updateStockTable();
+
+
+
+
+
+
